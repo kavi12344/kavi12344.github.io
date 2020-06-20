@@ -1,0 +1,106 @@
+function onOpen(e){
+ var ui = SpreadsheetApp.getUi();
+ ui.createMenu('Menu')
+ .addItem("Format", "copyFormat")
+  .addItem("Remove Row", "removeEmptyRowsInSelection")
+  .addItem("Copy to teacher", "copyToSheet")
+ .addToUi();           
+}
+
+function copyFormat(){
+   var sheet1 = SpreadsheetApp.getActiveSpreadsheet();
+   var destinationSheet = sheet1.getSheetByName("main");
+  var range = destinationSheet.getRange("A:G");
+  var sheet = sheet1.getSheetByName('format')
+  sheet.getRange("A:G").copyTo( destinationSheet.getRange("A:G"),  {formatOnly:true });
+ //removeEmptyRowsInSelection();
+
+}
+
+function sheetnames() {
+  var out = new Array()
+  var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
+  for (var i=0 ; i<sheets.length ; i++) out.push( [ sheets[i].getName() ] )
+  return out 
+}
+
+
+
+function removeEmptyRowsInSelection(){
+  var sheet = SpreadsheetApp.getActiveSheet();
+  var scriptSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("row delete");
+  var sheetLastRow = sheet.getLastRow();
+  var range = sheet.getActiveRange();
+  var rangeFirstRow = range.getRow();
+  var rangeLastRow = range.getLastRow();
+  var rangeFirstCol = range.getColumn();
+  var rangeLastCol = range.getLastColumn();
+  var rangeCols = rangeLastCol - rangeFirstCol + 1;
+  var maxRows = sheet.getMaxRows();
+  var maxCols = sheet.getMaxColumns();
+  var scriptSheetMaxRows = scriptSheet.getMaxRows();
+  var scriptSheetMaxCols = scriptSheet.getMaxColumns();
+  var insertRows = maxRows - scriptSheetMaxRows;
+  var insertCols = maxCols - scriptSheetMaxCols;
+  var currScriptRow = 1;
+  
+  scriptSheet.clear();
+  
+  if (insertRows > 0){
+    scriptSheet.insertRows(1, insertRows);
+  }
+  
+  if (insertCols > 0){
+    scriptSheet.insertCols(1, insertCols);
+  }
+  
+  
+  
+  for(var i = rangeFirstRow; i <= rangeLastRow; i++){
+
+    var currRange = sheet.getRange(i, rangeFirstCol, 1, rangeCols);
+    var currValue = currRange.getValues().join();
+    var emptyValue = '';
+    for (j = rangeCols; j > 1; j--){
+      emptyValue = emptyValue + ',';
+    }
+    if(currValue != emptyValue){
+      currRange.copyTo(scriptSheet.getRange(currScriptRow, 1));
+      currScriptRow++;
+      var test;
+    } 
+  }
+  
+  
+  
+  for(var currRow = rangeLastRow + 1; currRow <= sheetLastRow; currRow++, currScriptRow++){
+    sheet.getRange(currRow, rangeFirstCol, 1, rangeCols).copyTo(scriptSheet.getRange(currScriptRow, 1));
+  }
+  
+  var clearRange = sheet.getRange(rangeFirstRow, rangeFirstCol, maxRows, rangeCols);
+  var scriptSheetRange = scriptSheet.getRange(1, 1, scriptSheet.getLastRow(), scriptSheet.getLastColumn());
+  var pasteRange = sheet.getRange(rangeFirstRow, rangeFirstCol);
+  
+  clearRange.clear();
+  scriptSheetRange.copyTo(pasteRange);
+
+}
+
+
+
+function copyToSheet()
+    {
+     
+      
+      var sheet = SpreadsheetApp.getActiveSpreadsheet();
+      var originSheet = sheet.getActiveSheet();
+      
+      var listToCopy = originSheet.getRange(1,1,originSheet.getLastRow(),originSheet.getLastColumn());
+   var cellValue = sheet.getSheetByName('main').getRange('A1').getValue();
+       var target_sheet = sheet.getSheetByName(cellValue).activate();
+           var destinationColum = target_sheet.getLastColumn();
+  listToCopy.copyTo(target_sheet.getRange("1" ,(destinationColum + 1)));
+}
+    
+
+
